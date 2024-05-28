@@ -67,28 +67,6 @@ class Classifier():
     self.loss_val_name = list(self.history.history)[3]
     return self.history
 
-  def save_roc_curve(self, path):
-      preds = self.model.predict(self.test_ds, verbose=1)
-      fpr, tpr, _ = roc_curve(np.concatenate([y for x, y in self.test_ds], axis=0), preds)
-      roc_auc = auc(fpr, tpr)
-      plt.figure()
-      lw = 2
-      plt.plot(fpr, tpr, color='darkorange',
-      lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)
-      plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-      plt.xlim([0.0, 1.0])
-      plt.ylim([0.0, 1.05])
-      plt.xlabel('False Positive Rate')
-      plt.ylabel('True Positive Rate')
-      plt.title('Receiver operating characteristic')
-      plt.legend(loc="lower right")
-
-      graph = os.path.join(path, f"{self.model_name}_roc.png")
-      mng = plt.get_current_fig_manager()
-      mng.full_screen_toggle()
-      plt.savefig(graph, dpi=600)
-      plt.close()
-
   def save_validation_loss_plot(self, path):
       #visualize training results
       acc = self.history.history[self.acc_name]

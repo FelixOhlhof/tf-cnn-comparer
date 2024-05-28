@@ -19,4 +19,4 @@ if __name__ == "__main__":
         c.write_report(results_dir)
         c.save_validation_loss_plot(results_dir)
         c.save_model(results_dir)
-        c.save_roc_curve(results_dir)
+    util.save_roc_curve(classifier, results_dir)
