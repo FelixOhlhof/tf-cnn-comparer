@@ -1,0 +1,11 @@
+TF_CONFIG.py
+tfdisttraining.py
+.vscode
+__pycache__
+debug.py
+test.py
+results - alt
+stats - alt.csv
+notes.txt
+results
+data
