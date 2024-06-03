@@ -14,8 +14,11 @@ from sklearn.metrics import roc_curve, auc
 
 
 class Classifier():
-  def __init__(self, train_dir, test_dir, val_dir, seed, batch_size, model_name, img_height, img_width, epochs):
+  def __init__(self, train_dir, test_dir, val_dir, seed, batch_size, model_name, img_height, img_width, epochs, general_settings):
     self.classes = ["morph", "no_morph"]
+    self.train_dir = train_dir
+    self.val_dir = val_dir
+    self.test_dir = test_dir
     np.random.seed(37)
     rn.seed(seed)
     tf.random.set_seed(seed)
@@ -25,13 +28,11 @@ class Classifier():
     self.img_width = img_width
     self.callbacks_list = None
     self.epochs = epochs
+    self.train_ds, self.val_ds, self.test_ds = self.get_datasets()
     self.model_name = model_name
     model_method = getattr(models, model_name)
     self.model = model_method(img_height, img_width)
-    self.train_dir = train_dir
-    self.val_dir = val_dir
-    self.test_dir = test_dir
-    self.train_ds, self.val_ds, self.test_ds = self.get_datasets()
+    self.general_settings = general_settings
 
   def get_datasets(self):
     train_ds = tf.keras.utils.image_dataset_from_directory(
@@ -95,17 +96,16 @@ class Classifier():
       plt.close()
 
   def save_model(self, path):
-    self.model.save(os.path.join(path, f"{self.model_name}_model.h5"))
+    self.model.save(os.path.join(path, f"{self.model_name}.keras"))
   
-  def write_report(self, path):
+  def write_report(self, results_path):
     evaluation = self.model.evaluate(self.test_ds)
-    file_name = os.path.join(path, "log.csv")
     base_columns = None
 
-    if not os.path.isfile(file_name):
-      base_columns = ["model_name", "train_dir", "test_dir", "val_dir", "epochs", "batch_size", "seed", "model_layers", "model_input_shape", "loss_function", "best_accuracy", "loss", "best_val_accuracy", "val_loss", "test_accuracy", "test_loss"]
+    if not os.path.isfile(self.general_settings["log_file"]):
+      base_columns = ["results_path", "model_name", "train_dir", "test_dir", "val_dir", "epochs", "batch_size", "seed", "model_layers", "model_input_shape", "loss_function", "best_accuracy", "loss", "best_val_accuracy", "val_loss", "test_accuracy", "test_loss"]
     
-    with open(file_name, "a", newline='') as file:
+    with open(self.general_settings["log_file"], "a", newline='') as file:
       writer = csv.writer(file, delimiter=';')
 
       if base_columns != None:
@@ -113,6 +113,23 @@ class Classifier():
 
       max_accuracies = (self.history.history[self.acc_name].index(max(self.history.history[self.acc_name])), self.history.history[self.acc_val_name].index(max(self.history.history[self.acc_val_name])))
       writer.writerow(
-        [self.model_name, self.train_dir, self.test_dir, self.val_dir, self.epochs, self.batch_size, self.seed, str(self.history.model.layers), str(self.history.model.input_shape), self.history.model.loss, self.history.history[self.acc_name][max_accuracies[0]], list(self.history.history)[1][max_accuracies[0]], self.history.history[self.loss_name][max_accuracies[1]], self.history.history[self.loss_val_name][max_accuracies[1]], evaluation[1], evaluation[0]]
+        [
+          results_path,
+          self.model_name, 
+          self.train_dir, 
+          self.test_dir, 
+          self.val_dir, 
+          self.epochs, 
+          self.batch_size, 
+          self.seed, 
+          self.history.model.summary(), 
+          str(self.history.model.input_shape), 
+          self.history.model.loss, 
+          round(self.history.history[self.acc_name][max_accuracies[0]], 3), 
+          round(self.history.history[self.loss_name][max_accuracies[0]], 3), 
+          round(self.history.history[self.acc_val_name][max_accuracies[1]], 3), 
+          round(self.history.history[self.loss_val_name][max_accuracies[1]], 3), 
+          round(evaluation[1], 3), 
+          round(evaluation[0], 3)]
         )
       print("Created log file")

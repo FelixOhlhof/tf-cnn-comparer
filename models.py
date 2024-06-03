@@ -50,3 +50,36 @@ def demo2(img_height, img_width):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[tf.keras.metrics.BinaryAccuracy()])
 
     return model
+
+def mobile_net_v2(img_height, img_width):
+    data_augmentation = tf.keras.Sequential([
+      tf.keras.layers.RandomFlip('horizontal'),
+      tf.keras.layers.RandomRotation(0.2),
+    ])
+    
+    rescale = tf.keras.layers.Rescaling(1./127.5, offset=-1)
+    base_model = tf.keras.applications.MobileNetV2(input_shape=(img_height, img_width, 3),
+                                               include_top=False,
+                                               weights='imagenet')
+    
+    base_model.trainable = False
+
+    global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+
+    prediction_layer = tf.keras.layers.Dense(1, activation='sigmoid')
+
+    inputs = tf.keras.Input(shape=(img_height, img_width, 3))
+    x = data_augmentation(inputs)
+    x = rescale(x)
+    x = base_model(x, training=False)
+    x = global_average_layer(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    outputs = prediction_layer(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    base_learning_rate = 0.0010
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
+              loss=tf.keras.losses.BinaryCrossentropy(),
+              metrics=[tf.keras.metrics.BinaryAccuracy(threshold=0.5, name='accuracy')])
+
+    return model

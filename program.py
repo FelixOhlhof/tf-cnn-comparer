@@ -3,16 +3,14 @@ parser = argparse.ArgumentParser(description='Training and comparison of differe
 
 import os
 import util
-from datetime import datetime
-from Classifier import Classifier
 
 if __name__ == "__main__":
     settings = util.load_general_settings()
-    classifier = util.get_classifier()
+    classifier = util.get_classifier(settings)
     results_dir = util.create_new_results_folder()
 
     if(not settings["use_gpu"]):
-        os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # nessesary for the seed
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # nessesary for the seed to work
     
     for c in classifier:
         c.train()  

@@ -1,15 +1,14 @@
 
-import configparser
-import matplotlib.colors as mcolors
-import numpy as np
-import random
-from sklearn.metrics import roc_curve, auc
-import matplotlib.pyplot as plt
 import os
-from typing import List
+import random
+import configparser
+import numpy as np
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 
+from typing import List
+from sklearn.metrics import roc_curve, auc
 from pathlib import Path
-from time import sleep
 from datetime import datetime
 from Classifier import Classifier
 
@@ -21,9 +20,10 @@ def load_general_settings():
     for section_name in config.sections():
         if section_name == "General":
             use_gpu = config.getboolean("General","USE_GPU")
-            return dict(use_gpu=use_gpu)
+            log_file = config["General"]["LOG_FILE"]
+            return dict(use_gpu=use_gpu, log_file=log_file)
 
-def get_classifier() -> List[Classifier]:
+def get_classifier(general_settings) -> List[Classifier]:
     classifier = []
 
     for section_name in config.sections():
@@ -49,13 +49,14 @@ def get_classifier() -> List[Classifier]:
                 model_name=model_name, 
                 img_height=img_height, 
                 img_width=img_width, 
-                epochs=epochs)
+                epochs=epochs,
+                general_settings=general_settings)
             )
     return classifier
 
 def create_new_results_folder():
-    results_folder = os.path.join(Path.cwd(), "results")
-    results_folder = os.path.join(results_folder, datetime.now().strftime("%d.%m.%Y %H.%M.%S"))
+    # results_folder = os.path.join(Path.cwd(), "results")
+    results_folder = os.path.join("results", datetime.now().strftime("%d.%m.%Y %H.%M.%S"))
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
     return results_folder
