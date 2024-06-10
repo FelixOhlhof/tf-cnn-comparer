@@ -14,7 +14,10 @@ if __name__ == "__main__":
     
     for c in classifier:
         c.train()  
+        c.evaluate()
         c.write_report(results_dir)
         c.save_validation_loss_plot(results_dir)
+        c.save_model_summary(results_dir)
+        c.save_confusion_matrix(results_dir)
         c.save_model(results_dir)
     util.save_roc_curve(classifier, results_dir)

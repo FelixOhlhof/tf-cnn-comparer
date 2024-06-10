@@ -83,3 +83,32 @@ def mobile_net_v2(img_height, img_width):
               metrics=[tf.keras.metrics.BinaryAccuracy(threshold=0.5, name='accuracy')])
 
     return model
+
+def single_conv2d_with_aug(img_height, img_width):
+  data_augmentation = tf.keras.Sequential(
+    [
+      tf.keras.layers.RandomFlip("horizontal",
+                        input_shape=(img_height,
+                                    img_width,
+                                    3)),
+      tf.keras.layers.RandomRotation(0.1),
+      tf.keras.layers.RandomZoom(0.1),
+    ]
+  )
+
+  model = tf.keras.Sequential([
+    data_augmentation,
+    tf.keras.layers.Rescaling(1./255),
+    tf.keras.layers.Conv2D(16, 3, padding='same', activation='relu'),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Dropout(0.1),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(1, activation = 'sigmoid')
+    ])
+  
+  model.name = 'single_conv2d_with_aug'
+  
+  model.compile(optimizer=tf.keras.optimizers.Adam(), loss='binary_crossentropy', metrics=[tf.keras.metrics.BinaryAccuracy()])
+  
+  return model
