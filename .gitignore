@@ -4,7 +4,6 @@ tfdisttraining.py
 __pycache__
 debug.py
 test.py
-results - alt
 stats - alt.csv
 notes.txt
-results
+*.keras
